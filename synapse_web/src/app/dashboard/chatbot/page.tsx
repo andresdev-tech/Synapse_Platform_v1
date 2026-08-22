@@ -42,7 +42,7 @@ export default function ChatbotPage() {
           historial.push({
             id: 'bienvenida',
             tipo: 'bot',
-            texto: '¡Hola! Soy el asistente virtual de NEXUS. Puedo ayudarte con información sobre programas, inscripciones y tu perfil. ¿En qué te puedo ayudar?',
+            texto: '¡Hola! Soy el asistente virtual de Synapse. Puedo ayudarte con información sobre programas, inscripciones y tu perfil. ¿En qué te puedo ayudar?',
             fecha: new Date(),
           });
         }
@@ -52,7 +52,7 @@ export default function ChatbotPage() {
         setMensajes([{
           id: 'bienvenida',
           tipo: 'bot',
-          texto: '¡Hola! Soy el asistente virtual de NEXUS. ¿En qué te puedo ayudar hoy?',
+          texto: '¡Hola! Soy el asistente virtual de Synapse. ¿En qué te puedo ayudar hoy?',
           fecha: new Date(),
         }]);
       })
@@ -199,7 +199,7 @@ export default function ChatbotPage() {
             <Bot className="text-white" size={20} />
           </div>
           <div>
-            <h1 className="font-bold text-gray-900">NEXUS ChatBot</h1>
+            <h1 className="font-bold text-gray-900">Jarvis ChatBot</h1>
             <p className={`text-xs font-medium ${conectadoSSE ? 'text-green-500' : 'text-yellow-500'}`}>
               ● {conectadoSSE ? 'Conectado en tiempo real' : 'Conectando...'} · Powered by Gemini AI
             </p>
@@ -230,13 +230,18 @@ export default function ChatbotPage() {
                 </div>
 
                 {/* Burbuja */}
-                <div className={`max-w-lg px-4 py-3 rounded-2xl text-sm leading-relaxed
+                <div className={`max-w-lg px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap
                   ${msg.tipo === 'usuario'
                     ? 'bg-primary-600 text-white rounded-br-sm'
                     : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-sm'
                   }`}
                 >
-                  {msg.texto}
+                  {msg.texto.split(/(\*\*.*?\*\*)/g).map((part, j) => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                      return <strong key={j}>{part.slice(2, -2)}</strong>;
+                    }
+                    return part;
+                  })}
                 </div>
               </div>
             ))}
