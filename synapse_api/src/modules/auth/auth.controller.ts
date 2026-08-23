@@ -115,8 +115,7 @@ export class AuthController {
 
             return res.json({
                 ok: true,
-                token,
-                codigo_dev: code
+                token
             });
         } catch (error) {
             return res.status(400).json({
