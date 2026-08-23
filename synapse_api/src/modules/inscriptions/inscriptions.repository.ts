@@ -60,7 +60,7 @@ export class InscriptionsRepository {
                 },
                 include: {
                     usuarios_inscripciones_usuario_idTousuarios: true,
-                    programa: true,
+                    programas: true,
                 },
                 orderBy: {
                     creado_en: "desc",
