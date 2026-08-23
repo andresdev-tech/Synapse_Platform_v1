@@ -173,8 +173,11 @@ export class InscriptionsController {
     ) {
         try {
 
+            console.log("Debuggin of data: ", req.user.id)
+            
             const usuario_id =
-                String(res.locals.usuario_id);
+                String(req.user.id);
+                console.log('Users id 999: ', usuario_id)
 
             const inscriptions =
                 await InscriptionsService.getMyInscriptions(
@@ -188,7 +191,7 @@ export class InscriptionsController {
         } catch (error: any) {
 
             console.log(
-                "Error getting my inscriptions:",
+                "Error getting my inscriptions 999:",
                 error
             );
 
