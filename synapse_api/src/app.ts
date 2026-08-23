@@ -9,8 +9,8 @@ import { swaggerUi, swaggerSpec } from "./docs/swager";
 
 const app = express();
 const RatelimitGlobal = rateLimit({
-    windowMs: 7 * 60 * 1000,
-    limit: 5
+    windowMs: 15 * 60 * 1000,
+    limit: 1000
 })
 
 app.use(helmet());
