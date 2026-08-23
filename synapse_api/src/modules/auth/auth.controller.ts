@@ -31,6 +31,42 @@ export class AuthController {
         }
     }
 
+    static async googleLogin(req: Request, res: Response) {
+        /*try {
+            const { token } = req.body;
+        const { token: authToken, usuario } = await AuthService.googleLogin(token);
+
+            return res.json({
+                ok: true,
+                token: authToken,
+                usuario
+            });
+        } catch (error) {
+            return res.status(400).json({
+                ok: false,
+                error: (error as Error).message
+            });
+        }*/
+    }
+
+    static async githubLogin(req: Request, res: Response) {
+        /*try {
+            const { token } = req.body;
+            const { token: authToken, usuario } = await AuthService.githubLogin(token);
+
+            return res.json({
+                ok: true,
+                token: authToken,
+                usuario
+            });
+        } catch (error) {
+            return res.status(400).json({
+                ok: false,
+                error: (error as Error).message
+            });
+        }*/
+    }
+
     static async requestVerification(req: Request, res: Response) {
         try {
             const { correo_electronico } = req.body;
