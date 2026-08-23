@@ -56,12 +56,7 @@ export default function RecuperarPasswordPage() {
     try {
       const res = await authAPI.recuperarPassword({ correo_electronico: correoNormalizado });
       setCorreo(correoNormalizado);
-      if (res.data.codigo_dev) {
-        setCodigoDev(res.data.codigo_dev);
-        setMensaje(`Modo desarrollo: tu código es ${res.data.codigo_dev}`);
-      } else {
-        setMensaje(`Código enviado a ${correoNormalizado}. Revisa tu bandeja de entrada y spam.`);
-      }
+      setMensaje(`Código enviado a ${correoNormalizado}. Revisa tu bandeja de entrada y spam.`);
       setStep('codigo');
     } catch {
       setError('Error al solicitar recuperación. Verifica el correo.');
@@ -192,12 +187,7 @@ export default function RecuperarPasswordPage() {
                 Ingresa el código de 6 dígitos enviado a <strong>{correo}</strong>
               </p>
 
-              {codigoDev && (
-                <div className="bg-yellow-50 border border-yellow-300 rounded-lg px-4 py-3 text-center">
-                  <p className="text-yellow-700 text-xs font-medium mb-1">Modo desarrollo</p>
-                  <p className="text-2xl font-bold tracking-widest text-yellow-800">{codigoDev}</p>
-                </div>
-              )}
+
 
               <label htmlFor="codigo" className="sr-only">
                 Código de verificación
