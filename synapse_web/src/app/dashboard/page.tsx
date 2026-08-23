@@ -1,43 +1,16 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../lib/AuthContext';
-import { programasAPI, inscripcionesAPI } from '../../lib/api';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import {
-  BookOpen, MessageSquare, ClipboardList, Users,
-  ChevronRight, Sparkles, GraduationCap, BarChart2, Settings
-} from 'lucide-react';
-import { gruposAPI, coordinadorAPI } from '../../lib/api';
+import dynamic from 'next/dynamic';
 
-function ProgressRing({ value, size = 56, stroke = 6 }: { value: number; size?: number; stroke?: number }) {
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const dash = Math.max(0, Math.min(1, value / 100));
-  const offset = circumference * (1 - dash);
-  return (
-    <svg width={size} height={size} className="inline-block">
-      <g transform={`translate(${size / 2}, ${size / 2})`}>
-        <circle r={radius} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={stroke} />
-        <circle
-          r={radius}
-          fill="none"
-          stroke="#2563eb"
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={offset}
-          style={{ transition: 'stroke-dashoffset 600ms ease' }}
-        />
-      </g>
-    </svg>
-  );
-}
+const AdminDashboard = dynamic(() => import('@/components/dashboard/roles/AdminDashboard'), { ssr: false });
+const CoordinadorDashboard = dynamic(() => import('@/components/dashboard/roles/CoordinadorDashboard'), { ssr: false });
+const ProfesorDashboard = dynamic(() => import('@/components/dashboard/roles/ProfesorDashboard'), { ssr: false });
+const AprendizDashboard = dynamic(() => import('@/components/dashboard/roles/AprendizDashboard'), { ssr: false });
 
 export default function DashboardPage() {
-  const { usuario, loading, isAdmin, isAprendiz, isProfesor } = useAuth();
-  const esProfesor = isProfesor();
+  const { loading, isAdmin, isProfesor, usuario } = useAuth();
   const esCoordinador = usuario?.rol?.toLowerCase() === 'coordinador';
+<<<<<<< HEAD
   const router = useRouter();
   const [stats, setStats] = useState({ programas: 0, inscripciones: 0 });
   const [displayStats, setDisplayStats] = useState({ programas: 0, inscripciones: 0 });
@@ -912,6 +885,20 @@ export default function DashboardPage() {
       )}
 
       </div>
+=======
+  const esAprendiz = usuario?.rol?.toLowerCase() === 'aprendiz';
+
+  if (loading) return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+>>>>>>> fix/optimizacion
     </div>
   );
+
+  if (isAdmin() || usuario?.rol?.toUpperCase() === 'ADMINISTRADOR' || usuario?.rol?.toUpperCase() === 'ADMIN') return <AdminDashboard />;
+  if (esCoordinador || usuario?.rol?.toUpperCase() === 'COORDINADOR') return <CoordinadorDashboard />;
+  if (isProfesor() || usuario?.rol?.toUpperCase() === 'PROFESOR') return <ProfesorDashboard />;
+  
+  // Por defecto (Aprendiz o UNKNOWN) igual que el Sidebar
+  return <AprendizDashboard />;
 }
