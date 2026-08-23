@@ -5,6 +5,7 @@ import programsRoutes from "../modules/programas/programs.routes";
 import chatRoutes from "../modules/chatbot/chatbot.routes";
 import inscriptionsRoutes from "../modules/inscriptions/inscriptions.routes";
 import storageRoutes from "../modules/storage/storage.routes";
+import profesorRoutes from "../modules/profesor/profesor.routes";
 
 const router = Router();
 
@@ -14,5 +15,7 @@ router.use("/programas", programsRoutes);
 router.use("/chatbot", chatRoutes);
 router.use("/inscripciones", inscriptionsRoutes);
 router.use("/storage", storageRoutes);
+router.use("/profesor", profesorRoutes);
 
 export default router;
+
