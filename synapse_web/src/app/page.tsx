@@ -57,7 +57,7 @@ const equipoBase: MiembroEquipo[] = [
 // Revalidar cada hora (3600 segundos) para actualizar las fotos desde S3
 export const revalidate = 3600;
 
-export async function getEquipoActualizado(): Promise<MiembroEquipo[]> {
+async function getEquipoActualizado(): Promise<MiembroEquipo[]> {
   try {
     const response = await storageAPI.obtenerUrlsFotos();
 
