@@ -187,4 +187,11 @@ router.delete(
   ProgramasController.delete
 );
 
+
+router.post(
+  "/:id/horarios",
+  authMiddleware,
+  ProgramasController.createSchedule
+);
+
 export default router;

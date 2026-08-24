@@ -3,6 +3,33 @@ import { ProgramasService } from "./programs.service";
 import { generateUUID } from "../../common/utils/uuidcreate";
 
 export class ProgramasController {
+
+    static async createSchedule(req: Request, res: Response): Promise<any> {
+      try {
+          const programa_id = req.params.id;
+          const { modalidad, jornada, horarios_json } = req.body;
+          
+          if (!programa_id || !modalidad || !jornada) {
+            return res.status(400).json({ success: false, message: "Faltan datos requeridos" });
+          }
+
+          const horario = await prisma.programas_horarios.create({
+            data: {
+              id: crypto.randomUUID(),
+              programa_id,
+              modalidad,
+              jornada,
+              horarios_json: horarios_json || {},
+              creado_en: new Date()
+            }
+          });
+
+          return res.status(201).json({ success: true, data: horario });
+      } catch (error: any) {
+          return res.status(500).json({ success: false, message: error.message });
+      }
+    }
+
   static async getAll(
     req: Request,
     res: Response

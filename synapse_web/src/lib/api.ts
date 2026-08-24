@@ -155,7 +155,8 @@ export const authAPI = {
  */
 export const gruposAPI = {
   // Obtener grupos de un programa
-  obtenerGruposPorPrograma: (programaId: number) =>
+  crearGrupo: (programaId: string, data: any) => api.post(`/grupos/programa/${programaId}`, data),
+    obtenerGruposPorPrograma: (programaId: number) =>
     cachedGet(`/grupos/programa/${programaId}`),
   
   // Obtener miembros de un grupo específico
@@ -257,7 +258,8 @@ export const programasAPI = {
     api.delete(`/programas/${programaId}/coordinadores/${usuarioId}`),
   listarProfesores: (programaId: number) =>
     api.get(`/programas/${programaId}/profesores`),
-  asignarProfesor: (programaId: number, usuarioId: number) =>
+  asignarHorario: (programaId: string, data: any) => api.post(`/programas/${programaId}/horarios`, data),
+    asignarProfesor: (programaId: number, usuarioId: number) =>
     api.post(`/programas/${programaId}/profesores`, { usuario_id: usuarioId }),
   quitarProfesor: (programaId: number, usuarioId: number) =>
     api.delete(`/programas/${programaId}/profesores/${usuarioId}`),
