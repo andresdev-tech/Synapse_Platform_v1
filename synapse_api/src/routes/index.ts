@@ -6,6 +6,7 @@ import chatRoutes from "../modules/chatbot/chatbot.routes";
 import inscriptionsRoutes from "../modules/inscriptions/inscriptions.routes";
 import storageRoutes from "../modules/storage/storage.routes";
 import profesorRoutes from "../modules/profesor/profesor.routes";
+import calificacionesRoutes from "../modules/calificaciones/calificaciones.routes";
 
 const router = Router();
 
@@ -16,6 +17,6 @@ router.use("/chatbot", chatRoutes);
 router.use("/inscripciones", inscriptionsRoutes);
 router.use("/storage", storageRoutes);
 router.use("/profesor", profesorRoutes);
+router.use("/calificaciones", calificacionesRoutes);
 
 export default router;
-

@@ -412,6 +412,19 @@ export const storageAPI = {
 };
 
 /**
+ * FUNCIONES DE CALIFICACIONES
+ */
+export const calificacionesAPI = {
+  obtenerPorGrupo: (grupoId: string) =>
+    api.get(`/calificaciones/grupo/${grupoId}`),
+  obtenerPorPrograma: (programaId: string | number) =>
+    api.get(`/calificaciones/programa/${programaId}`),
+  
+  asignar: (data: { usuario_id: string, programa_id: string, grupo_id?: string, profesor_id: string, calificacion: number, observacion?: string }) =>
+    api.post('/calificaciones', data),
+};
+
+/**
  * EXPORTAR API POR DEFECTO
  */
 export default api;
