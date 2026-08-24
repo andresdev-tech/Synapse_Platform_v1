@@ -340,4 +340,11 @@ router.post(
     GroupsController.revertExpulsion
 );
 
+
+router.post(
+  "/programa/:programaId",
+  authMiddleware,
+  GruposController.createGroup
+);
+
 export default router;

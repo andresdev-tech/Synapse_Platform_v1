@@ -108,11 +108,41 @@ export default function GestorGruposPage() {
   const [detallesGrupo, setDetallesGrupo] = useState<DetallesGrupo | null>(null);
   const [loadingDetalles, setLoadingDetalles] = useState(false);
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [modalCrearGrupo, setModalCrearGrupo] = useState(false);
+  const [modalHorario, setModalHorario] = useState(false);
+  const [nuevoGrupo, setNuevoGrupo] = useState({ nombre: '', materia: '', capacidad_maxima: 30 });
+  const [nuevoHorario, setNuevoHorario] = useState({ modalidad: 'Presencial', jornada: 'Diurna', horarios_json: {} });
 
   // Función para cargar todos los datos
   useEffect(() => {
     cargarDatos();
   }, [programaId]);
+
+  const crearNuevoGrupo = async () => {
+    try {
+      setLoading(true);
+      await gruposAPI.crearGrupo(programaId, nuevoGrupo);
+      setExito('Grupo creado exitosamente');
+      setModalCrearGrupo(false);
+      cargarDatos();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Error al crear grupo');
+      setLoading(false);
+    }
+  };
+
+  const guardarHorario = async () => {
+    try {
+      setLoading(true);
+      await gruposAPI.asignarHorario(programaId, nuevoHorario);
+      setExito('Horario asignado exitosamente');
+      setModalHorario(false);
+      cargarDatos();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Error al asignar horario');
+      setLoading(false);
+    }
+  };
 
   const cargarDatos = async () => {
     try {
@@ -264,7 +294,13 @@ export default function GestorGruposPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2">Gestor de Grupos</h1>
+        <div className="flex justify-between items-center mb-2">
+            <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">Gestor de Grupos</h1>
+            <div className="flex gap-2">
+              <button onClick={() => setModalHorario(true)} className="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg font-medium hover:bg-indigo-200 transition">Configurar Horario</button>
+              <button onClick={() => setModalCrearGrupo(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">Crear Nuevo Grupo</button>
+            </div>
+          </div>
         <p className="text-gray-600 mb-8">Asigna y gestiona aprendices en los grupos del programa</p>
 
         {/* MENSAJES DE ERROR Y ÉXITO */}
