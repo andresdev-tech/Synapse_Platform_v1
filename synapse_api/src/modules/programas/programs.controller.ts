@@ -1,14 +1,16 @@
+import crypto from "crypto";
 import { Request, Response } from "express";
 import { ProgramasService } from "./programs.service";
 import { prisma } from "../../config/prisma.js";
 import crypto from "crypto";
 import { generateUUID } from "../../common/utils/uuidcreate";
+import { prisma } from "../../config/prisma";
 
 export class ProgramasController {
 
   static async asignarProfesor(req: Request, res: Response): Promise<any> {
       try {
-          const { id } = req.params; // programa_id
+          const id = String(req.params.id); // programa_id
           const { usuario_id } = req.body;
           
           if (!id || !usuario_id) {
@@ -46,7 +48,7 @@ export class ProgramasController {
 
     static async createSchedule(req: Request, res: Response): Promise<any> {
       try {
-          const programa_id = req.params.id;
+          const programa_id = String(req.params.id);
           const { modalidad, jornada, horarios_json } = req.body;
           
           if (!programa_id || !modalidad || !jornada) {

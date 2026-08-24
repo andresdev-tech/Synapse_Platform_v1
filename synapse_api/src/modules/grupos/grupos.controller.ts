@@ -1,3 +1,4 @@
+import { prisma } from "../../config/prisma.js";
 import crypto from "crypto";
 import { Request, Response } from "express";
 import { GroupsService } from "./grupos.service";
@@ -9,6 +10,36 @@ import {
 import { string } from "zod/v4";
 
 export class GroupsController {
+
+    static async createGroup(req: Request, res: Response): Promise<any> {
+      try {
+          const programa_id = String(req.params.programaId);
+          const { materia, nombre, capacidad_maxima } = req.body;
+          
+          if (!programa_id || !nombre || !capacidad_maxima) {
+            return res.status(400).json({ success: false, message: "Faltan datos requeridos" });
+          }
+
+          const grupo = await prisma.grupos.create({
+            data: {
+              id: crypto.randomUUID(),
+              programa_id,
+              materia: materia || "General",
+              nombre,
+              capacidad_maxima: Number(capacidad_maxima),
+              capacidad_actual: 0,
+              estado: "activo",
+              creado_en: new Date(),
+              actualizado_en: new Date()
+            }
+          });
+
+          return res.status(201).json({ success: true, data: grupo });
+      } catch (error: any) {
+          return res.status(500).json({ success: false, message: error.message });
+      }
+    }
+
 
     static async getGroupsByProgram(
         req: Request,
