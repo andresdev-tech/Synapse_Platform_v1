@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { profesorAPI } from '../../../../../lib/api';
+import { profesorAPI, calificacionesAPI } from '../../../../../lib/api';
+import { useAuth } from '../../../../../lib/AuthContext';
 import {
   ArrowLeft, Users, AlertTriangle, CheckCircle,
-  Search, ShieldOff, X, Minus, Plus, Home
+  Search, ShieldOff, X, Minus, Plus, Home, Star, MessageSquare
 } from 'lucide-react';
 
 interface Aprendiz {
@@ -25,6 +26,7 @@ interface Aprendiz {
 export default function GrupoProfesorPage() {
   const { programaId } = useParams();
   const router = useRouter();
+  const { usuario } = useAuth();
 
   const [grupo, setGrupo]             = useState<Aprendiz[]>([]);
   const [loading, setLoading]         = useState(true);
@@ -37,12 +39,22 @@ export default function GrupoProfesorPage() {
   const [nuevasFaltas, setNuevasFaltas] = useState(0);
   const [procesando, setProcesando]     = useState(false);
 
+  const [calificaciones, setCalificaciones] = useState<Record<string, any>>({});
+  const [modalCalificacionAbierto, setModalCalificacionAbierto] = useState(false);
+  const [nuevaNota, setNuevaNota] = useState('');
+  const [nuevaObservacion, setNuevaObservacion] = useState('');
+
   useEffect(() => { cargar(); }, [programaId]);
 
   const cargar = async () => {
     try {
       const res = await profesorAPI.obtenerGrupo(Number(programaId));
       setGrupo(res.data);
+      
+      const resCal = await calificacionesAPI.obtenerPorPrograma(Number(programaId));
+      const notasMap: Record<string, any> = {};
+      resCal.data.notas.forEach((n: any) => notasMap[n.usuario_id] = n);
+      setCalificaciones(notasMap);
     } catch (err) {
       console.error(err);
     } finally {
@@ -82,6 +94,40 @@ export default function GrupoProfesorPage() {
       cargar();
     } catch (err: any) {
       mostrarMensaje(err.response?.data?.message || 'Error al actualizar.', 'error');
+    } finally {
+      setProcesando(false);
+    }
+  };
+
+  const abrirCalificacion = (a: Aprendiz) => {
+    setSeleccionado(a);
+    const notaActual = calificaciones[a.usuario_id];
+    setNuevaNota(notaActual ? notaActual.calificacion : '');
+    setNuevaObservacion(notaActual ? (notaActual.observacion || '') : '');
+    setModalCalificacionAbierto(true);
+  };
+
+  const guardarCalificacion = async () => {
+    if (!seleccionado || !usuario) return;
+    const notaNum = parseFloat(nuevaNota);
+    if (isNaN(notaNum) || notaNum < 0 || notaNum > 5) {
+      mostrarMensaje('La nota debe ser un número entre 0 y 5.', 'error');
+      return;
+    }
+    setProcesando(true);
+    try {
+      await calificacionesAPI.asignar({
+        usuario_id: seleccionado.usuario_id.toString(),
+        programa_id: programaId.toString(),
+        profesor_id: usuario.id.toString(),
+        calificacion: notaNum,
+        observacion: nuevaObservacion
+      });
+      mostrarMensaje('Calificación guardada correctamente.', 'success');
+      setModalCalificacionAbierto(false);
+      cargar(); // Recargar para actualizar mapa
+    } catch (err: any) {
+      mostrarMensaje(err.response?.data?.error || 'Error al guardar calificación.', 'error');
     } finally {
       setProcesando(false);
     }
@@ -177,19 +223,31 @@ export default function GrupoProfesorPage() {
                     </div>
                   </div>
 
-                  <button onClick={() => abrirFaltas(a)}
-                    className={`flex items-center gap-4 text-left flex-shrink-0 px-5 py-3 rounded-[1.25rem] transition-colors border w-full sm:w-auto
-                      ${a.total_faltas >= a.limite_faltas 
-                        ? 'bg-red-500/10 hover:bg-red-500/20 border-red-500/20' 
-                        : 'bg-slate-50 hover:bg-slate-800 border-transparent hover:border-indigo-500/20'}`}>
-                    <div>
-                      <div className="text-xs uppercase tracking-[0.15em] text-slate-500 mb-0.5">Asistencia</div>
-                      <div className="text-xs font-medium text-slate-500">Clic para registrar</div>
-                    </div>
-                    <div className={`text-3xl font-extrabold ${a.total_faltas >= a.limite_faltas ? 'text-red-400' : 'text-slate-900'}`}>
-                      {a.total_faltas}<span className="text-sm font-medium text-slate-500 ml-1">/ {a.limite_faltas}</span>
-                    </div>
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-4 sm:mt-0">
+                    <button onClick={() => abrirCalificacion(a)}
+                      className="flex items-center gap-4 text-left flex-shrink-0 px-5 py-3 rounded-[1.25rem] transition-colors border w-full bg-slate-50 hover:bg-slate-800 hover:text-white border-transparent hover:border-indigo-500/20 group">
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.15em] text-slate-500 group-hover:text-slate-400 mb-0.5">Calificación</div>
+                        <div className="text-xs font-medium text-slate-500 group-hover:text-slate-300">{calificaciones[a.usuario_id] ? 'Editar nota' : 'Asignar nota'}</div>
+                      </div>
+                      <div className="text-3xl font-extrabold text-slate-900 group-hover:text-white">
+                        {calificaciones[a.usuario_id] ? Number(calificaciones[a.usuario_id].calificacion).toFixed(1) : '-'}
+                      </div>
+                    </button>
+                    <button onClick={() => abrirFaltas(a)}
+                      className={`flex items-center gap-4 text-left flex-shrink-0 px-5 py-3 rounded-[1.25rem] transition-colors border w-full
+                        ${a.total_faltas >= a.limite_faltas 
+                          ? 'bg-red-500/10 hover:bg-red-500/20 border-red-500/20' 
+                          : 'bg-slate-50 hover:bg-slate-800 hover:text-white border-transparent hover:border-indigo-500/20 group'}`}>
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.15em] text-slate-500 group-hover:text-slate-400 mb-0.5">Asistencia</div>
+                        <div className="text-xs font-medium text-slate-500 group-hover:text-slate-300">Registrar faltas</div>
+                      </div>
+                      <div className={`text-3xl font-extrabold ${a.total_faltas >= a.limite_faltas ? 'text-red-400' : 'text-slate-900 group-hover:text-white'}`}>
+                        {a.total_faltas}<span className="text-sm font-medium text-slate-500 group-hover:text-slate-400 ml-1">/ {a.limite_faltas}</span>
+                      </div>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -250,6 +308,56 @@ export default function GrupoProfesorPage() {
               <button onClick={() => setModalAbierto(false)} className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-900 font-semibold py-3.5 rounded-full transition-colors border border-slate-200">Cancelar</button>
               <button onClick={guardarFaltas} disabled={procesando} className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-slate-900 font-bold py-3.5 rounded-full transition-colors shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
                 {procesando ? 'Guardando...' : 'Guardar Faltas'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CALIFICACION */}
+      {modalCalificacionAbierto && seleccionado && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+          <div className="bg-slate-50 border border-slate-200 rounded-[2rem] shadow-md w-full max-w-md p-8 relative overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+            
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-extrabold text-slate-900 text-xl">Calificar Aprendiz</h3>
+              <button onClick={() => setModalCalificacionAbierto(false)} className="text-slate-500 hover:text-slate-900 transition-colors bg-slate-900 w-8 h-8 rounded-full flex items-center justify-center"><X size={18} /></button>
+            </div>
+            
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 mb-6 text-center">
+              <p className="text-slate-900 font-bold">{seleccionado.nombres} {seleccionado.apellidos}</p>
+              <p className="text-slate-500 text-xs mt-1">{seleccionado.correo_electronico}</p>
+            </div>
+
+            <div className="mb-5">
+              <label className="block text-xs uppercase tracking-widest text-slate-500 font-bold mb-2 ml-2">Nota (0 a 5)</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Star size={18} className="text-indigo-400"/></div>
+                <input type="number" min="0" max="5" step="0.1"
+                  className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-indigo-500 transition-colors"
+                  placeholder="Ej: 4.5"
+                  value={nuevaNota}
+                  onChange={e => setNuevaNota(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <label className="block text-xs uppercase tracking-widest text-slate-500 font-bold mb-2 ml-2">Observación (Opcional)</label>
+              <div className="relative">
+                <div className="absolute top-3.5 left-0 pl-4 flex items-start pointer-events-none"><MessageSquare size={18} className="text-indigo-400"/></div>
+                <textarea rows={3}
+                  className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+                  placeholder="Añade un comentario sobre el desempeño..."
+                  value={nuevaObservacion}
+                  onChange={e => setNuevaObservacion(e.target.value)} />
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <button onClick={() => setModalCalificacionAbierto(false)} className="flex-1 bg-white hover:bg-slate-200 text-slate-900 font-semibold py-3.5 rounded-full transition-colors border border-slate-200">Cancelar</button>
+              <button onClick={guardarCalificacion} disabled={procesando} className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-full transition-colors shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                {procesando ? 'Guardando...' : 'Guardar Nota'}
               </button>
             </div>
           </div>

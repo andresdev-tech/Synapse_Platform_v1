@@ -199,7 +199,7 @@ model programas {
   id                      String                    @id @db.Uuid
   nombre                  String                    @db.VarChar(150)
   slug                    String                    @unique @db.VarChar(180)
-  descripcion             String?                   @db.Text
+  descripcion             String?
   sector                  String?                   @db.VarChar(100)
   estado                  String                    @default("activo") @db.VarChar(30)
   imagen_url              String?                   @db.VarChar(500)

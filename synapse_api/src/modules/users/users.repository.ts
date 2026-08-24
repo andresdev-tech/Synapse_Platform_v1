@@ -5,7 +5,9 @@ export class UsersRepository {
 
     static async findAll() {
         try {
-            return prisma.usuarios.findMany();
+            return prisma.usuarios.findMany({
+                include: { roles: true }
+            });
         } catch (error: any) {
             console.log("Error finding all users:", error);
             throw error.response || error.message;

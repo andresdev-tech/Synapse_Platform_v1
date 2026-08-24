@@ -25,7 +25,7 @@ export const GetRoleNameCort = (id: string) => {
   switch (id) {
     case '01a02b36-efbe-71cd-afd4-25d0e387b42b':
       return 'Aprendiz';
-    case '01a02b37-677e-740f-a51d-fecec6108083':
+    case '2': // Assign a dummy or proper ID if Estudiante exists, but remove the duplicate UUID
       return 'Estudiante';
     case '01a02b37-677e-740f-a51d-fecec6108083':
       return 'PROFESOR';

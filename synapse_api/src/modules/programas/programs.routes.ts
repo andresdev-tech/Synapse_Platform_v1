@@ -187,4 +187,20 @@ router.delete(
   ProgramasController.delete
 );
 
+
+/**
+ * @swagger
+ * /programs/{id}/profesores:
+ *   post:
+ *     summary: Asignar profesor al programa
+ *     tags: [Programs]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post(
+  "/:id/profesores",
+  authMiddleware,
+  ProgramasController.asignarProfesor
+);
+
 export default router;

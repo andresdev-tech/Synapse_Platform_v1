@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../../lib/AuthContext';
 import { useRouter } from 'next/navigation';
-import { coordinadorAPI } from '../../../lib/api';
-import { Users, BookOpen, ChevronRight, LayoutGrid, Sparkles, ArrowRightCircle } from 'lucide-react';
+import { coordinadorAPI, usuariosAPI, programasAPI } from '../../../lib/api';
+import { Users, BookOpen, ChevronRight, LayoutGrid, Sparkles, ArrowRightCircle, UserPlus, X, User } from 'lucide-react';
 
 interface Programa {
   id: number;
@@ -20,10 +20,18 @@ export default function CoordinadorPage() {
   const [programas, setProgramas] = useState<Programa[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // States for Assign Professor
+  const [modalProfesoresOpen, setModalProfesoresOpen] = useState(false);
+  const [profesoresList, setProfesoresList] = useState<any[]>([]);
+  const [selectedProgramaId, setSelectedProgramaId] = useState<string>('');
+  const [selectedProfesorId, setSelectedProfesorId] = useState<string>('');
+  const [procesandoAsignacion, setProcesandoAsignacion] = useState(false);
+  const [mensajeModal, setMensajeModal] = useState('');
+
   useEffect(() => {
     const cargarProgramas = async () => {
       try {
-        const response = await coordinadorAPI.misProgramas();
+        const response = await programasAPI.listar();
         setProgramas(response.data);
       } catch (error) {
         console.error('Error:', error);
@@ -34,6 +42,45 @@ export default function CoordinadorPage() {
 
     cargarProgramas();
   }, []);
+
+  const abrirModalAsignacion = async () => {
+    setModalProfesoresOpen(true);
+    setMensajeModal('');
+    try {
+      const res = await usuariosAPI.listarTodos();
+      // El backend devuelve { success: true, data: [...] } o [...] dependiendo de la versión
+      const lista = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      const profes = lista.filter((u: any) => 
+        u.rol_nombre?.toLowerCase() === 'profesor' || 
+        u.roles?.nombre?.toLowerCase() === 'profesor' ||
+        String(u.rol_id) === '3' || 
+        u.rol === 'Profesor'
+      );
+      setProfesoresList(profes);
+    } catch (error) {
+      console.error("Error al cargar profesores", error);
+      setMensajeModal("No se pudieron cargar los profesores.");
+    }
+  };
+
+  const asignarProfesor = async () => {
+    if (!selectedProgramaId || !selectedProfesorId) {
+      setMensajeModal('Por favor selecciona un programa y un profesor.');
+      return;
+    }
+    setProcesandoAsignacion(true);
+    setMensajeModal('');
+    try {
+      // Usamos string para mantener el UUID
+      await programasAPI.asignarProfesor(selectedProgramaId as any, selectedProfesorId as any);
+      setMensajeModal('¡Profesor asignado correctamente!');
+      setTimeout(() => setModalProfesoresOpen(false), 2000);
+    } catch (error: any) {
+      setMensajeModal(error.response?.data?.message || 'Error al asignar el profesor.');
+    } finally {
+      setProcesandoAsignacion(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -74,30 +121,53 @@ export default function CoordinadorPage() {
               </div>
             </div>
 
-            <div className="mt-6 sm:mt-10 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <div className="rounded-2xl sm:rounded-3xl bg-slate-50 p-4 sm:p-6 shadow-lg border border-slate-200">
-                <div className="flex items-center gap-3 mb-4 sm:mb-5 text-slate-800">
-                  <div className="rounded-2xl bg-sky-100 p-2 sm:p-3 text-sky-600">
-                    <LayoutGrid size={20} />
+            <div className="mt-6 sm:mt-10 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="rounded-2xl sm:rounded-3xl bg-slate-50 p-4 sm:p-6 shadow-lg border border-slate-200 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-3 mb-4 sm:mb-5 text-slate-800">
+                    <div className="rounded-2xl bg-sky-100 p-2 sm:p-3 text-sky-600">
+                      <LayoutGrid size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-slate-500">Estado general</p>
+                      <h2 className="text-xl sm:text-2xl font-semibold">Visión general de tus programas</h2>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-slate-500">Estado general</p>
-                    <h2 className="text-xl sm:text-2xl font-semibold">Visión general de tus programas</h2>
-                  </div>
+                  <p className="text-sm sm:text-base text-slate-600">Revisa la carga de trabajo de cada programa y accede directo a la gestión de grupos desde los atajos más importantes.</p>
                 </div>
-                <p className="text-sm sm:text-base text-slate-600">Revisa la carga de trabajo de cada programa y accede directo a la gestión de grupos desde los atajos más importantes.</p>
               </div>
-              <div className="rounded-2xl sm:rounded-3xl bg-slate-900 p-4 sm:p-6 shadow-xl border border-white/10 text-white">
-                <div className="flex items-center gap-3 mb-4 sm:mb-5">
-                  <div className="rounded-2xl bg-white/10 p-2 sm:p-3 text-cyan-200">
-                    <Sparkles size={20} />
+
+              <div className="rounded-2xl sm:rounded-3xl bg-slate-900 p-4 sm:p-6 shadow-xl border border-white/10 text-white flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-3 mb-4 sm:mb-5">
+                    <div className="rounded-2xl bg-white/10 p-2 sm:p-3 text-cyan-200">
+                      <Sparkles size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-slate-300">Consejo rápido</p>
+                      <h2 className="text-xl sm:text-2xl font-semibold">Optimiza tus grupos</h2>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-slate-300">Consejo rápido</p>
-                    <h2 className="text-xl sm:text-2xl font-semibold">Optimiza tus grupos</h2>
-                  </div>
+                  <p className="text-sm sm:text-base text-slate-300">Usa las tarjetas de programa para ver métricas rápidas, luego entra a cada grupo y gestiona expulsiones, suspensiones o reasignaciones.</p>
                 </div>
-                <p className="text-sm sm:text-base text-slate-300">Usa las tarjetas de programa para ver métricas rápidas, luego entra a cada grupo y gestiona expulsiones, suspensiones o reasignaciones con mayor facilidad.</p>
+              </div>
+
+              <div className="rounded-2xl sm:rounded-3xl bg-indigo-600 p-4 sm:p-6 shadow-xl border border-white/10 text-white flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-3 mb-4 sm:mb-5">
+                    <div className="rounded-2xl bg-white/10 p-2 sm:p-3 text-indigo-200">
+                      <Users size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-indigo-200">Docentes</p>
+                      <h2 className="text-xl sm:text-2xl font-semibold">Asignar Profesores</h2>
+                    </div>
+                  </div>
+                  <p className="text-sm sm:text-base text-indigo-100">Vincula a los docentes con los programas de formación para que puedan gestionar sus grupos y calificaciones.</p>
+                </div>
+                <button onClick={abrirModalAsignacion} className="mt-4 sm:mt-5 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-indigo-600 shadow-md transition hover:bg-slate-100">
+                  <UserPlus size={18} /> Asignar ahora
+                </button>
               </div>
             </div>
           </div>
@@ -160,6 +230,73 @@ export default function CoordinadorPage() {
           ))}
         </div>
       </div>
+      {/* MODAL ASIGNAR PROFESORES */}
+      {modalProfesoresOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-indigo-600 p-6 text-white flex justify-between items-center">
+              <div>
+                <h3 className="font-bold text-xl">Asignar Profesor</h3>
+                <p className="text-indigo-200 text-sm mt-1">Vincula un docente a un programa</p>
+              </div>
+              <button onClick={() => setModalProfesoresOpen(false)} className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                <X size={18} />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {mensajeModal && (
+                <div className={`p-3 rounded-xl text-sm font-medium mb-4 ${mensajeModal.includes('correctamente') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+                  {mensajeModal}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Programa</label>
+                  <select 
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    value={selectedProgramaId}
+                    onChange={(e) => setSelectedProgramaId(e.target.value)}
+                  >
+                    <option value="">Selecciona un programa...</option>
+                    {programas.map(p => (
+                      <option key={p.id} value={p.id}>{p.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Profesor</label>
+                  <select 
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    value={selectedProfesorId}
+                    onChange={(e) => setSelectedProfesorId(e.target.value)}
+                  >
+                    <option value="">Selecciona un docente...</option>
+                    {profesoresList.map(p => (
+                      <option key={p.id} value={p.id}>{p.nombres} {p.apellidos} - {p.numero_documento}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-8 flex gap-3">
+                <button onClick={() => setModalProfesoresOpen(false)} className="flex-1 py-3 px-4 rounded-xl text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+                  Cancelar
+                </button>
+                <button 
+                  onClick={asignarProfesor}
+                  disabled={procesandoAsignacion}
+                  className="flex-1 py-3 px-4 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition disabled:opacity-50"
+                >
+                  {procesandoAsignacion ? 'Asignando...' : 'Asignar Docente'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
