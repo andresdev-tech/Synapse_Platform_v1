@@ -1,12 +1,14 @@
+import crypto from "crypto";
 import { Request, Response } from "express";
 import { ProgramasService } from "./programs.service";
 import { generateUUID } from "../../common/utils/uuidcreate";
+import { prisma } from "../../config/prisma";
 
 export class ProgramasController {
 
     static async createSchedule(req: Request, res: Response): Promise<any> {
       try {
-          const programa_id = req.params.id;
+          const programa_id = String(req.params.id);
           const { modalidad, jornada, horarios_json } = req.body;
           
           if (!programa_id || !modalidad || !jornada) {

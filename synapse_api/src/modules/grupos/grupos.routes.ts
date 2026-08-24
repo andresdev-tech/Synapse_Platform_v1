@@ -1,3 +1,4 @@
+import { authMiddleware } from "../../common/middlewares/auth.middleware";
 import { Router } from "express";
 import { GroupsController } from "./grupos.controller";
 
@@ -344,7 +345,7 @@ router.post(
 router.post(
   "/programa/:programaId",
   authMiddleware,
-  GruposController.createGroup
+  GroupsController.createGroup
 );
 
 export default router;
