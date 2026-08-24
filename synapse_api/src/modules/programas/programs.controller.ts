@@ -1,8 +1,10 @@
+import crypto from "crypto";
 import { Request, Response } from "express";
 import { ProgramasService } from "./programs.service";
 import { prisma } from "../../config/prisma.js";
 import crypto from "crypto";
 import { generateUUID } from "../../common/utils/uuidcreate";
+import { prisma } from "../../config/prisma";
 
 export class ProgramasController {
 
