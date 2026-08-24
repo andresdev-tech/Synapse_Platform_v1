@@ -203,4 +203,10 @@ router.post(
   ProgramasController.asignarProfesor
 );
 
+router.post(
+  "/:id/horarios",
+  authMiddleware,
+  ProgramasController.createSchedule
+);
+
 export default router;
